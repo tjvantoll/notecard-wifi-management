@@ -6,6 +6,7 @@ interface EventsResponse {
   events: {
     rat: string;
     req: string;
+    ssid: string;
     when: number;
   }[];
 }
@@ -32,11 +33,12 @@ const formatUnixTimestamp = (timestamp: number): string => {
 
 export default function Home() {
   const [rat, setRat] = useState<string>("");
+  const [ssid, setSsid] = useState<string>("");
   const [when, setWhen] = useState<number>(0);
 
-  const setWiFiEnvVar = async (ssid: string, password: string) => {
+  const setWiFiEnvVar = async (newSsid: string, newPassword: string) => {
     const envVars = new NotehubJs.EnvironmentVariables({
-      _wifi: `["${ssid}","${password}"]`,
+      _wifi: `["${newSsid}","${newPassword}"]`,
     });
     await deviceApiInstance.putDeviceEnvironmentVariables(
       projectUID,
@@ -59,10 +61,8 @@ export default function Home() {
           (event) => event.req == "session.begin"
         )[0];
 
-        let rat = startEvent.rat;
-        if (rat === "lte") rat = "LTE";
-
-        setRat(rat);
+        setRat(startEvent.rat);
+        setSsid(startEvent.ssid);
         setWhen(startEvent.when);
       });
   };
@@ -102,8 +102,10 @@ export default function Home() {
 
           <ul className="mb-4">
             <li className="mb-2">
-              <span className="font-semibold">Last Connection Type:</span>{" "}
-              {rat && rat}
+              <span className="font-semibold">Last RAT:</span> {rat && rat}
+            </li>
+            <li className="mb-2">
+              <span className="font-semibold">Last SSID:</span> {ssid || "N/A"}
             </li>
             <li>
               <span className="font-semibold">Last Connection Made:</span>{" "}
